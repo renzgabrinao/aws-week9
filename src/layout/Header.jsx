@@ -19,7 +19,7 @@ export default function Header() {
   } 
 
   return (
-    <nav className="h-12 flex flex-row justify-between items-center px-9 bg-slate-300">
+    <nav className="h-12 flex flex-row justify-between items-center px-9 text-xl">
       <div className="hover:cursor-pointer">
         { user ?
           <>
@@ -31,10 +31,10 @@ export default function Header() {
           </>
         }
       </div>
-      <ul className="flex flex-row justify-between w-48">
+      <ul className="flex flex-col justify-between">
         {user ?
           <>
-            <li>Hello, {user.username}</li>
+            <li className="hover:underline"><Link to="/profile">Hello, {user.username}</Link></li>
             <li onClick={handleSignOut} className="hover:underline hover:cursor-pointer">Sign Out</li>
           </> 
           : 

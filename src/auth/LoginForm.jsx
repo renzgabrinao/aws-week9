@@ -1,9 +1,13 @@
 import { Link } from "react-router-dom"
 import { useState } from "react";
+import { UserContext } from "../context/UserContext";
+import { useContext } from "react";
 
 export default function LoginForm({ onSubmit }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+
+  const { errorMsg } = useContext(UserContext);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -11,8 +15,8 @@ export default function LoginForm({ onSubmit }) {
   }
   
   return (
-    <div className="mt-28">
-      <form className="flex flex-col justify-between w-96 h-80 m-auto" onSubmit={handleSubmit}>
+    <div className="h-screen flex justify-center items-center">
+      <form className="flex flex-col justify-between w-96 h-80" onSubmit={handleSubmit}>
         <div className="flex flex-col">
           <label className="pl-2 font-bold" htmlFor="username">User Name</label>
           <input 
@@ -47,6 +51,7 @@ export default function LoginForm({ onSubmit }) {
         <button className="w-1/2 border border-green-700 bg-green-600 rounded-md h-10 mt-4 self-center text-white" type="submit">
           Sign In
         </button>
+        { errorMsg && <div className="text-red-600 text-sm text-center pl-2 mt-1">{errorMsg}</div> }
       </form>
     </div>
   )

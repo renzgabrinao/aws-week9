@@ -1,7 +1,7 @@
 export default function Landing() {
   return (
-    <div>
-      <h1 className="text-center">Landing Page 😋</h1>
+    <div className="h-screen flex justify-center items-center">
+      <h1 className="text-4xl font-extrabold">Landing Page 😋</h1>
     </div>
   )
 }

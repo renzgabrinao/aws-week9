@@ -1,5 +1,6 @@
 import { useState, useContext, useEffect } from "react";
 import { Route, Routes, useNavigate } from "react-router-dom";
+import axios from "axios";
 
 // layout
 import Header from "./layout/Header";
@@ -20,21 +21,43 @@ import * as cognito from '../cognito';
 
 // context
 import { UserContext } from "./context/UserContext";
+import Profile from "./secure/Profile";
 
 export default function App() {
-
   const navigate = useNavigate();
+  
   const [errorMsg, setErrorMsg] = useState(null);
   const [user, setUser] = useState(null);
+  const [token, setToken] = useState(null);
+  const [userReviews, setUserReviews] = useState([]);
+  const [userDetails, setUserDetails] = useState({});
+
 
   useEffect(() => {
     const getUser = async () => {
       const user = await cognito.getCurrentUser();
-
       if (user) {
-        setUser(user)
-      } else {
-        setUser(null);
+        setUser(user);
+
+        // grab user access token
+        const userToken = await cognito.getAccessToken();
+        setToken(userToken);
+
+        // grab user reviews from db
+        await axios.get(`${import.meta.env.VITE_API_URL}/api/review`, {
+          headers: {
+            Authorization: userToken
+          }
+        })
+        .then(res => setUserReviews(res.data));
+
+        // grab user details from db
+        await axios.get(`${import.meta.env.VITE_API_URL}/api/user`, {
+          headers: {
+            Authorization: userToken
+          }
+        })
+        .then(res => setUserDetails(res.data));
       }
     }
     getUser();
@@ -46,7 +69,6 @@ export default function App() {
       await cognito.signIn({ username, password });
 
       const user = await cognito.getCurrentUser();
-      console.log(user);
       setUser(user);
 
       navigate("/home");
@@ -58,7 +80,21 @@ export default function App() {
 
   const handleSignup = async ({ username, email, password }) => {
     try {
-      await cognito.signUp({ username, email, password });
+      const res = await cognito.signUp({ username, email, password });
+
+      const form = JSON.stringify({
+        id: res.userSub,
+        name: res.user.username
+      });
+
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/user`, form,
+        {
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        }
+      )
+      
       navigate("/confirm");
       setErrorMsg(null);
     } catch (error) {
@@ -72,7 +108,7 @@ export default function App() {
       navigate("/login");
       setErrorMsg(null);
     } catch (error) {
-      setErrorMsg("Problem confirming user 😢. Please check form inputs");
+      setErrorMsg("Problem confirming user 😢. Please check form inputs.");
     }
   }
 
@@ -97,21 +133,23 @@ export default function App() {
   }
 
   return (
-    <UserContext.Provider value={{user, setUser}}>
+    <UserContext.Provider 
+      value={{user, setUser, errorMsg, setErrorMsg, userReviews, setUserReviews, token, setToken, userDetails, setUserDetails}}
+    >
       <div>
         <Header/>
-        <div className="min-h-screen bg-slate-300">
+        <div className="min-h-screen">
           <Routes>
             <Route path="/" element={<Landing/>}/>
-            <Route path="login" element={<LoginForm  onSubmit={handleLogin} setErrorMsg={setErrorMsg}/>}/>
-            <Route path="signup" element={<SignupForm onSubmit={handleSignup} setErrorMsg={setErrorMsg}/>}/>
-            <Route path="confirm" element={<ConfirmForm onSubmit={handleConfirm} setErrorMsg={setErrorMsg}/>}/>
-            <Route path="forgot" element={<ForgotPassword onSubmit={handleForgotPassword} setErrorMsg={setErrorMsg}/>}/>
-            <Route path="reset" element={<ResetPasswordForm onSubmit={handleResetPassword} setErrorMsg={setErrorMsg}/>}/>
+            <Route path="login" element={<LoginForm  onSubmit={handleLogin}/>}/>
+            <Route path="signup" element={<SignupForm onSubmit={handleSignup}/>}/>
+            <Route path="confirm" element={<ConfirmForm onSubmit={handleConfirm}/>}/>
+            <Route path="forgot" element={<ForgotPassword onSubmit={handleForgotPassword}/>}/>
+            <Route path="reset" element={<ResetPasswordForm onSubmit={handleResetPassword}/>}/>
             <Route path="home" element={<Secure/>}/>
+            <Route path="profile" element={<Profile/>}/>
             <Route path="*" element={<NoPage/>}/>
           </Routes>
-          { errorMsg && <div className="text-red-600 text-sm text-center pl-2 mt-1">{errorMsg}</div> }
         </div>
         <Footer />
       </div>

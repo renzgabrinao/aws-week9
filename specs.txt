@@ -1,0 +1,35 @@
+1. Be able to use AWS Cognito to log in users
+2. Set up CockroachDB for App
+3. Use AWS Lambda and API gateway to return a list of items
+  specific to the user when they log in
+4. Set up AWS S3 to store images when users update their profile picture
+
+DB Specifications: 
+
+USER table
+  UUID, varchar, Primary -> Store AWS Cognito user ID when writing query
+  display_name, varchar -> Store AWS Cognito user name when writing query
+  bio, varchar, nullable -> description about user
+  image_name, varchar, nullable -> image name is used when grabbing image from AWS S3
+
+POSTS table
+  UUID, varchar, Primary -> AWS Cognito user ID
+  image_name, varchar -> AWS S3 image name
+  description, varchar -> description about image
+
+COCKROACHDB SQL STATEMENTS:
+
+CREATE TABLE users (
+  id UUID PRIMARY KEY,
+  display_name STRING,
+  bio STRING,
+  image_name STRING
+);
+
+CREATE TABLE reviews (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_uuid UUID REFERENCES users (id),
+  title STRING,
+  review STRING,
+  rating INT
+);

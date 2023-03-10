@@ -1,7 +1,7 @@
 export default function NoPage() {
   return(
-    <div>
-      <h1>PAGE NOT FOUND 😭</h1>
+    <div className="h-screen flex justify-center items-center">
+      <h1 className="text-4xl font-extrabold">😢 PAGE NOT FOUND 😭</h1>
     </div>
   )
 }
